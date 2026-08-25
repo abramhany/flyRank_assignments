@@ -1,13 +1,22 @@
 from fastapi import FastAPI , HTTPException 
 from pydantic import BaseModel , Field
+from database.database import  (insert_to_task , db_con ,get_task_from_db , get_all_tasks_from_db , update_task)
 
 
+
+con = db_con()
+
+insert_to_task("fdsafhlsadkfjhal")
+
+print('---------')
+res =  get_task_from_db(2)
+print(res)
 class Item(BaseModel):
     title:str = Field(min_length=1, strip_whitespace=True)
 
 class Update(BaseModel):
-    title:str | None = None
-    done:bool | None = None
+    title:str = Field(min_length=1, strip_whitespace=True)
+    done:bool 
     
 
 app = FastAPI()
@@ -15,10 +24,6 @@ app = FastAPI()
 @app.get("/",status_code=201)
 async def info():
     return {'name':"Task API",'version':"1.0","endpoints":['/tasks']}
-items = [
-    {'id':0,"title":'test',"done":True},
-    {'id':1,"title":'train',"done":False}
-,]
 
 @app.get('/health')
 async def status():
@@ -26,54 +31,68 @@ async def status():
 
 @app.get("/tasks",status_code=200)
 async def get_all():
-    return items[:]
+
+    res = get_all_tasks_from_db()
+    data = []
+
+    for row in res:
+
+        dic = {'id':row[0],
+               'title':row[1],
+                'done':bool(row[2])}
+
+        data.append(dic)
+
+    return data
 
 @app.get('/tasks/{id}',status_code=200)
 async def get_task(id:int):
-    if id > len(items):
+
+    res = get_task_from_db(id)
+
+    if res == None:
         raise HTTPException(status_code=400,detail=f"Task {id} not found")
-    return 200 ,items[id]
+    else:
+
+        dic = {
+                    'id':id,
+                    "title":res[1],
+                    "done":bool(res[2])
+                }
+        
+        return dic
 
 @app.post('/tasks',status_code=200)
 async def create_task(item:Item):
     if item.title.strip() == '':
         raise HTTPException(status_code=400,detail="Bad request")
-        
+    else:    
+        insert_to_task(item)
 
-    id = len(items)
-    dic = {
-        'id':id,
-        "title":item.title,
-        "done":False
-    }
-    items.append(dic)
-    print(id)
-    return 201,items[id]
 
 @app.put('/tasks/{id}')
 async def update_task(id:int,update:Update):
-    if id > len(items):
+    if id < 0:
         raise HTTPException(status_code=404,detail="Couldn't find ID")
     
     if update.done is None and update.title is None:
         raise HTTPException(status_code=400,detail="Couldn't update the task")
-
-    dic = items[id]
-
-    if update.done is not None:
-        dic['done'] = update.done
-
-    if update.title is not None:
-        dic['title'] = update.title
-
-    return items[id]
+    else:
+        update_task(id,update.title,update.done)
+  #  if update.done is not None:
+  #      dic['done'] = update.done
+#
+  #  if update.title is not None:
+  #      dic['title'] = update.title
+#
+        return None
 
 @app.delete('/tasks/{id}',status_code=204)
 async def update_task(id:int):
-    if id<0 or id > len(items):
+    if id<0 or id > len(None):
         raise HTTPException(status_code=404,detail="Couldn't find ID")
     
-    del items[id]
+    del None[id]
 
     return "No Content"
         
