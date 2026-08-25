@@ -51,7 +51,7 @@ async def get_task(id:int):
     res = get_task_from_db(id)
 
     if res == None:
-        raise HTTPException(status_code=400,detail=f"Task {id} not found")
+        raise HTTPException(status_code=400,detail="Task not found")
     else:
 
         dic = {
