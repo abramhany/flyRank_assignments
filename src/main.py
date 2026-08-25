@@ -52,6 +52,7 @@ async def get_task(id:int):
 
     if res == None:
         raise HTTPException(status_code=400,detail="Task not found")
+
     else:
 
         dic = {
@@ -62,7 +63,7 @@ async def get_task(id:int):
         
         return dic
 
-@app.post('/tasks',status_code=200)
+@app.post('/tasks',status_code=201)
 async def create_task(item:Item):
     if item.title.strip() == '':
         raise HTTPException(status_code=400,detail="Bad request")
