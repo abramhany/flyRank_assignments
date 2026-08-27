@@ -1,12 +1,11 @@
 from fastapi import FastAPI , HTTPException 
 from pydantic import BaseModel , Field
-from database.database import  (insert_to_task , db_con ,get_task_from_db , get_all_tasks_from_db , update_task)
+from database.database import  (insert_to_task , db_con ,get_task_from_db , get_all_tasks_from_db , update_task_db , delete_task_db)
 
 
 
 con = db_con()
 
-insert_to_task("fdsafhlsadkfjhal")
 
 print('---------')
 res =  get_task_from_db(2)
@@ -79,23 +78,18 @@ async def update_task(id:int,update:Update):
     if update.done is None and update.title is None:
         raise HTTPException(status_code=400,detail="Couldn't update the task")
     else:
-        update_task(id,update.title,update.done)
-  #  if update.done is not None:
-  #      dic['done'] = update.done
-#
-  #  if update.title is not None:
-  #      dic['title'] = update.title
-#
-        return None
+        update_task_db(id,update.title,update.done)
+
+        return "Task updated"
 
 @app.delete('/tasks/{id}',status_code=204)
-async def update_task(id:int):
-    if id<0 or id > len(None):
+async def delete_task(id:int):
+    if id<0 :
         raise HTTPException(status_code=404,detail="Couldn't find ID")
+    else:
+        delete_task_db(id)
     
-    del None[id]
-
-    return "No Content"
+        return "No Content"
         
 
     

@@ -59,11 +59,20 @@ def get_all_tasks_from_db():
     con.close()
     return res
 
-def update_task(id:int,title:str,done:bool):
-    data=(id,title,done)
+def update_task_db(id:int,title:str,done:bool):
+    data=(title,done,id)
     con = db_con()
     cur = con.cursor()
-    cur.execute("UPDATE tasks SET title= ?,done= ?, WHERE id=?",data)
+    cur.execute("UPDATE tasks SET title= ?, done= ? WHERE id= ?",data)
+    con.commit()
+    con.close()
+
+
+def delete_task_db(id:int):
+    data=(id,)
+    con = db_con()
+    cur = con.cursor()
+    cur.execute("DELETE FROM tasks WHERE id= ?",data)
     con.commit()
     con.close()
         
