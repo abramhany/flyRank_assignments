@@ -44,4 +44,20 @@ def create_postdb():
             print(f"Database tables: {res}")
 
 
-      
+def get_all_tasks():
+     with psycopg.connect(db_location) as con:
+            with con.cursor() as cur:
+              cur.execute("SELECT * FROM tasks;")
+              return cur.fetchall()
+
+def get_task_postgres(id):
+     with psycopg.connect(db_location) as con:
+                 with con.cursor() as cur:
+                   cur.execute("SELECT * FROM tasks WHERE id=%s;",(id,))
+                   return cur.fetchone()
+
+def insert_task(title):
+    with psycopg.connect(db_location) as con:
+                with con.cursor() as cur:
+                  cur.execute("INSERT INTO tasks (title) VALUES (%s) RETURNING *;",(title,))
+                  return cur.fetchone()

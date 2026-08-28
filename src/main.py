@@ -1,7 +1,7 @@
 from fastapi import FastAPI , HTTPException 
 from pydantic import BaseModel , Field
 from database.database import  (insert_to_task , db_con ,get_task_from_db , get_all_tasks_from_db , update_task_db , delete_task_db)
-from database.postdb import create_postdb
+from database.postdb import create_postdb , get_all_tasks , get_task_postgres
 
 
 create_postdb()
@@ -30,7 +30,7 @@ async def status():
 @app.get("/tasks",status_code=200)
 async def get_all():
 
-    res = get_all_tasks_from_db()
+    res = get_all_tasks()
     data = []
 
     for row in res:
@@ -46,10 +46,10 @@ async def get_all():
 @app.get('/tasks/{id}',status_code=200)
 async def get_task(id:int):
 
-    res = get_task_from_db(id)
+    res = get_task_postgres(id)
 
     if res == None:
-        raise HTTPException(status_code=400,detail="Task not found")
+        raise HTTPException(status_code=404,detail="Task not found")
 
     else:
 
