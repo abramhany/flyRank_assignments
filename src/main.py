@@ -1,11 +1,10 @@
 from fastapi import FastAPI , HTTPException 
 from pydantic import BaseModel , Field
 from database.database import  (insert_to_task , db_con ,get_task_from_db , get_all_tasks_from_db , update_task_db , delete_task_db)
+from database.postdb import create_postdb
 
 
-
-con = db_con()
-
+create_postdb()
 
 print('---------')
 res =  get_task_from_db(2)
