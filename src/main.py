@@ -1,14 +1,12 @@
 from fastapi import FastAPI , HTTPException 
 from pydantic import BaseModel , Field
-from database.database import  (insert_to_task , db_con ,get_task_from_db , get_all_tasks_from_db , update_task_db , delete_task_db)
-from database.postdb import create_postdb , get_all_tasks , get_task_postgres
+
+from database.postdb import create_postdb , get_all_tasks , get_task_postgres, insert_task ,update_task_postgres , delete_task_postgres
 
 
 create_postdb()
 
-print('---------')
-res =  get_task_from_db(2)
-print(res)
+
 class Item(BaseModel):
     title:str = Field(min_length=1, strip_whitespace=True)
 
@@ -66,7 +64,9 @@ async def create_task(item:Item):
     if item.title.strip() == '':
         raise HTTPException(status_code=400,detail="Bad request")
     else:    
-        insert_to_task(item)
+        res = insert_task(item.title)
+        return res
+
 
 
 @app.put('/tasks/{id}')
@@ -77,18 +77,17 @@ async def update_task(id:int,update:Update):
     if update.done is None and update.title is None:
         raise HTTPException(status_code=400,detail="Couldn't update the task")
     else:
-        update_task_db(id,update.title,update.done)
+        res = update_task_postgres(id,update.title,update.done)
 
-        return "Task updated"
+        return res,"Task updated"
 
 @app.delete('/tasks/{id}',status_code=204)
 async def delete_task(id:int):
     if id<0 :
         raise HTTPException(status_code=404,detail="Couldn't find ID")
     else:
-        delete_task_db(id)
-    
-        return "No Content"
+        res =delete_task_postgres(id)
+        return f"{res} was deleted"
         
 
     
