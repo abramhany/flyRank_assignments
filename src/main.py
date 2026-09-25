@@ -1,11 +1,22 @@
-from fastapi import FastAPI , HTTPException 
+from fastapi import FastAPI , HTTPException ,Depends
 from pydantic import BaseModel , Field
-
+from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
+from supabase import Client, create_client
+from dotenv import load_dotenv
+import os
 from database.postdb import create_postdb , get_all_tasks , get_task_postgres, insert_task ,update_task_postgres , delete_task_postgres
 
+load_dotenv()
 
+
+oauth2_schema = OAuth2PasswordBearer(tokenUrl='auth')
 create_postdb()
 
+supabase: Client = create_client(
+    supabase_url=os.environ.get("SUPABASE_URL"),
+   supabase_key=os.environ.get("SUPABASE_PUBLISHABLE_KEY")
+)
 
 class Item(BaseModel):
     title:str = Field(min_length=1, strip_whitespace=True)
@@ -26,7 +37,7 @@ async def status():
     return {'status':"ok"}
 
 @app.get("/tasks",status_code=200)
-async def get_all():
+async def get_all(token:Annotated[str,Depends(oauth2_schema)]):
 
     res = get_all_tasks()
     data = []
@@ -39,7 +50,7 @@ async def get_all():
 
         data.append(dic)
 
-    return data
+    return data , token
 
 @app.get('/tasks/{id}',status_code=200)
 async def get_task(id:int):

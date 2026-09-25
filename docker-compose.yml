@@ -3,7 +3,7 @@ services:
     build: .
     ports: ["8000:8000"]
     environment:
-      DATABASE_URL: postgres://postgres:123@db:5432/tasks
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@db:5432/tasks
     depends_on:
       db:
         condition: service_healthy
@@ -11,7 +11,7 @@ services:
     image: postgres:16
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: tasks
     volumes:
       - taskdata:/var/lib/postgresql
