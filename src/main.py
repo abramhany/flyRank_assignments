@@ -2,11 +2,12 @@ from fastapi import FastAPI , HTTPException ,Depends
 from pydantic import BaseModel , Field
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
-from supabase import Client, create_client
+from supabase import Client, create_client , AuthWeakPasswordError , AuthApiError
 from dotenv import load_dotenv
 import os
 from database.postdb import create_postdb , get_all_tasks , get_task_postgres, insert_task ,update_task_postgres , delete_task_postgres
-
+from schema.database import Item , Update
+from schema.auth import SignUp
 load_dotenv()
 
 
@@ -14,16 +15,11 @@ oauth2_schema = OAuth2PasswordBearer(tokenUrl='auth')
 create_postdb()
 
 supabase: Client = create_client(
+
     supabase_url=os.environ.get("SUPABASE_URL"),
    supabase_key=os.environ.get("SUPABASE_PUBLISHABLE_KEY")
 )
 
-class Item(BaseModel):
-    title:str = Field(min_length=1, strip_whitespace=True)
-
-class Update(BaseModel):
-    title:str = Field(min_length=1, strip_whitespace=True)
-    done:bool 
     
 
 app = FastAPI()
@@ -31,6 +27,31 @@ app = FastAPI()
 @app.get("/",status_code=201)
 async def info():
     return {'name':"Task API",'version':"1.0","endpoints":['/tasks']}
+
+
+@app.post('/auth/signup',status_code=201)
+async def signup(sign_up:SignUp):
+    try :
+        supabase.auth.sign_up({
+            "email":sign_up.email,
+            "password" : sign_up.password
+        })
+    except AuthWeakPasswordError :
+        raise HTTPException(400,detail="Bad Request") 
+    
+    return "Created"
+
+@app.post('/auth/login',status_code=201)
+async def login(sign_up:SignUp):
+    try :
+        response = supabase.auth.sign_in_with_password({
+            "email":sign_up.email,
+            "password" : sign_up.password
+        })
+    except AuthApiError :
+        raise HTTPException(400,detail="Invalid login credentials")
+    
+    return response.session.access_token
 
 @app.get('/health')
 async def status():
